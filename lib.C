@@ -1,0 +1,241 @@
+#include "lib.h"
+
+using namespace std;
+
+//chisquared, binned approach
+double chisquared (int N, double * nu, double * values, double * variances){
+    double chisq = 0;
+    for(int i = 0; i < N; i++){
+        chisq += pow(nu[i] - values[i],2)/variances[i];
+    }
+    return chisq;
+}
+
+//computing the variance in a MC method, using blocks
+double variance_blocks (int N_blocks, double * A){
+    double * A2 = new double [N_blocks];
+    for (int i=0; i<N_blocks; i++){
+        A2[i] = pow(A[i],2);
+    }
+    double A2_mean = mean (N_blocks, A2);
+    double A_mean = mean (N_blocks, A);
+    delete []A2;
+    return 1./(N_blocks-1)*(A2_mean-A_mean*A_mean);
+}
+
+
+//ditance between 2 points in 2d space
+double distance (double x1, double x2, double y1, double y2){
+    double d, xx, yy;
+    xx  =  pow(x1-x2,2);
+    yy  =  pow(y1-y2,2);
+    d  =  pow(xx + yy, 0.5);
+    return d;
+}
+
+//counts input values from file
+int count_file (const char* filename){
+	ifstream in;
+	int c = 0;
+	double appo;
+	in.open(filename);
+    	if(in.fail()){
+        cout  <<  endl  << "Can't open file!!!!"  <<  endl;
+        return 1;
+	} 
+
+    in>>appo;
+    while(!in.eof()){
+	   c++;
+	   in>>appo;
+    }
+
+    in.close();
+    return c;
+}
+
+//binary search for int
+int binarySearch(int v[], int value, int low, int high) {
+     int mid;
+     if (high < low){
+	cout << "Impossible search!!!" << endl;
+         return -1; 
+	}
+
+     mid  =  low + ((high - low) / 2); 
+     if (v[mid] > value)
+         return binarySearch(v, value, low, mid-1);
+     else if (v[mid] < value)
+         return binarySearch(v, value, mid+1, high);
+     else
+         return mid; 
+ }
+
+
+//mergesort
+void merge(int a[],int low,int mid,int high){
+
+    int h,i,j,k;
+    int b[50]; 
+    h = low; 
+    i = low; 
+    j = mid+1; 
+
+    while((h<= mid)&&(j<= high)){ 
+        if(a[h]<= a[j]){
+            b[i] = a[h];
+            h++; 
+        }
+        else{
+            b[i] = a[j];
+            j++;
+        }
+        i++;
+    }
+
+    if(h>mid){ 
+        for(k = j;k<= high;k++){
+            b[i] = a[k];
+            i++;
+        }
+    }
+    else{
+        for(k = h;k<= mid;k++){ 
+            b[i] = a[k];
+            i++;
+        }
+    }
+    for(k = low;k<= high;k++) a[k] = b[k]; 
+}
+
+void merge_sort(int a[],int low,int high){
+    int mid;
+    if(low<high) {
+        mid  =  low + (high-low)/2; 
+        merge_sort(a,low,mid);
+        merge_sort(a,mid+1,high);
+        merge(a,low,mid,high);
+    }
+}
+
+
+//resize a vector
+void resize (double **v, int oldDim, int newDim){
+	double*pappo;
+
+	if(newDim<oldDim){
+		cout << "Set a larger dimension than previous one!" << endl;
+		return;
+	}
+
+	pappo =  new double [newDim];
+
+	for (int i = 0; i<oldDim; i++){
+		pappo[i] = (*v)[i];
+	}
+
+	delete [] *v;
+	*v = pappo;
+    delete [] pappo;
+return;
+}
+
+//mean of a vector
+double mean(int a, double vett[]){
+    double c,tot = 0;
+
+    for (int i = 0; i<a; i++){
+        tot =  tot+ vett[i];
+    }
+
+    c = tot/a;
+    return c;
+}
+
+
+//variance of a vector
+double variance (int a, double vett[]){
+    double tot2 = 0;
+    double c,d;
+
+    for (int i = 0; i<a; i++){
+        tot2 =  tot2+ vett[i]*vett[i];
+    }
+    d = mean(a, vett);
+    c =  tot2/a - d*d;
+    return c;
+}
+
+//swap array values
+void swapArray(double v[], int pos1, int pos2){
+    double appo;
+    appo  =  v[pos1];
+    v[pos1]  =  v[pos2];
+    v[pos2]  =  appo;
+}
+
+//random numbers in interval a b
+double randUnif (double a ,double b){
+	double appo;
+	appo = rand();
+	appo = appo/RAND_MAX;
+	appo = appo*(a-b)+b;
+    return appo;
+}
+
+
+//max value in a vector
+double findMax (double vett[], int dim) {
+    int i;
+    double max = 0;
+    for (i = 0; i<dim; i++){
+        if (vett[i]>max){
+            max = vett[i]; 
+        }
+    }
+    return max;
+}
+
+//boxmuller RIVEDERE
+void boxmuller (double mean, double stdDev, double* v1){
+    double appo1, appo2;
+    double n1;
+    appo1 =  (double) rand()/RAND_MAX;
+    appo2 =  (double) rand()/RAND_MAX;
+    n1 =  stdDev*(sqrt(-2*log(appo1))*sin(2*(3.14)*appo2))+mean;
+    v1[0] = n1;
+}
+
+
+//generate numbers from gaussian RIVEDERE
+double* generarandgauss(double mean, double stdDev, int n){
+    
+    double*vett;
+    vett =  new double[n];
+    for (int i = 0; i<n; i++){
+        boxmuller(mean, stdDev, &vett[i]);
+    }
+    
+    return vett;
+}
+
+//ordina il vettore in ordine decrescente
+void ordinadecr (double vett[], int dim){
+  
+    int min = 0;
+    double temp;
+    
+    for(int i = 0; i<dim-1; i++){
+        
+        min  =  i;
+        
+        for(int j = i+1; j<dim; j++)
+            if(vett[j] > vett[min])
+                min  =  j;
+        
+        temp = vett[min];
+        vett[min] = vett[i];
+        vett[i] = temp;
+    }
+    
+}
