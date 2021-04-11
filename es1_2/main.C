@@ -7,17 +7,32 @@ int main(){
 
     Random rnd;
     rnd.Initialize(rnd);
-
-    ofstream out("es2.csv");
-    out << "standard,exponential,lorentz" << endl;
-
+    int M = 1e4;
     double lambda = 1.;
-    int N = 1e4;
-    for (int i = 0; i < N; i++){
-        out << rnd.Rannyu() << "," << rnd.Expo(lambda) << "," << rnd.Cauchy(lambda) <<endl;
+    int Ni [4] = {1,2,10,100};
+
+    for (int u = 0; u < 4; u++){
+        int N = Ni[u]; //values in each sum SN
+        ofstream out("es2_"+to_string(N)+".txt");
+
+        for (int i = 0; i < M; i++){ 
+
+            double * appo_st = new double [N];
+            double * appo_ex = new double [N];
+            double * appo_lo = new double [N];
+
+            for (int k = 0; k < N; k++){
+                appo_st[k] = rnd.Rannyu();
+                appo_ex[k] = rnd.Expo(lambda);
+                appo_lo[k] = rnd.Cauchy(lambda);
+            }
+            out << mean (N, appo_st) << "," << mean (N, appo_ex) << "," << mean (N, appo_lo) << endl; 
+
+            delete []appo_st,appo_ex,appo_lo;
+        }
+            
+        out.close();
     }
-
-    out.close();
-
+    rnd.SaveSeed();
     return 0;
 }

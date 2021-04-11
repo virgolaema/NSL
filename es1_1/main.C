@@ -6,15 +6,14 @@ using namespace std;
 int main(){
 
     ofstream out;
-    out.open("es1_1.csv");
-    out << "Nblocks,throws,mean_r,var_r,stdev_r,mean_var,stdev_var" << endl;
+    out.open("es1_1.txt");
 
     int M = 100000; //number of gen values
     int N = 100; //values per block
     int L = (int) M/N;
     double * unc = new double [N];
     double * r = new double [N];
-    int start = 9; //start from 4 blocks
+    int start = 4; //start from the block "start"
 
     Random rnd;
     rnd.Initialize(rnd);
@@ -67,9 +66,7 @@ int main(){
     double * nui = new double [M]; //values expected in every bin (and also variance), need this for chisquared function
     for (int i = 0; i < M; i++){nui[i] = nu;}
 
-    out.open("es1_3.csv");
-
-    out << "chi_squared" << endl;
+    out.open("es1_3.txt");
     
     for (int k = 0; k < reps; k++){
         cout << "Calcolo il " << k+1 << " chi-quadro " << endl;
@@ -78,7 +75,7 @@ int main(){
 
         double appo = 0;
         for (int i = 0; i < n; i++){ //filling the vector ni, repr. the bins
-            in >> appo;
+            appo = rnd.Rannyu();
             for (int j = 0; j < M; j++){
                 if (appo >= j*(1./M) and appo < (j+1)*1./M) {
                     ni[j]++;
@@ -94,8 +91,6 @@ int main(){
 
     delete []chisq;
     out.close();
-    in.close();
-
     rnd.SaveSeed();
     return 0;
 }

@@ -2,6 +2,27 @@
 
 using namespace std;
 
+//factorial function
+double factorial (double x){
+    int fact = 1;
+    int appo = x;
+    if (x==0){appo=1;}
+    while (appo!=1){
+        fact *= appo;
+        appo--;
+    }
+    return fact;
+}
+
+//mclaurin series of the cos, for small x   
+double cos_ml(double x){
+    double sum = 0;
+    for (int i=0; i<3; i++){ //first terms of the series
+        sum +=  pow(-1,i)/factorial(2*i)*pow(x,2*i);
+    }
+    return sum;
+}
+
 //chisquared, binned approach
 double chisquared (int N, double * nu, double * values, double * variances){
     double chisq = 0;

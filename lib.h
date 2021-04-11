@@ -4,6 +4,13 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
+#include <string>
+
+//factorial function
+double factorial (double);
+
+//mclaurin series of the cos, for small x   
+double cos_ml(double);
 
 //chisquared, binned approach
 double chisquared (int , double * , double * , double *);
