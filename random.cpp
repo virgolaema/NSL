@@ -72,6 +72,11 @@ double Random :: Gauss(double mean, double sigma) {
    return mean + x * sigma;
 }
 
+double Random :: MaxBoltz (double vmean, double m, double T){ //wrong!!
+   cout << "not ok" << endl;
+   return 4* M_PI * pow((m/(2*M_PI*1.380658e-23)),1.5) * vmean*vmean * exp(-(m*vmean*vmean)/(2*1.380658e-23*T));
+}
+
 double Random :: Rannyu(double min, double max){
    return min+(max-min)*Rannyu();
 }

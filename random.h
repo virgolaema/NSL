@@ -28,10 +28,11 @@ public:
   void SetRandom(int * , int, int);
   void SaveSeed();
   double Rannyu(void);
-  double Rannyu(double min, double max);
-  double Gauss(double mean, double sigma);
-  double Expo(double lambda);
-  double Cauchy (double lambda);
+  double Rannyu(double, double);
+  double Gauss(double, double);
+  double Expo(double);
+  double Cauchy (double);
+  double MaxBoltz (double, double , double );
 };
 
 #endif // __Random__
