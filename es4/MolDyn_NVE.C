@@ -29,9 +29,11 @@ int main(){
         ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
         nconf += 1;
      }
-     if (istep == nstep) ConfFinal("config.00");
+   
+     if (istep == nstep-1) ConfFinal("config.00"); //Write config at step t-dt
   }
   ConfFinal("config.final");         //Write final configuration to restart
+  Blocking ();
 
   return 0;
 }
@@ -102,7 +104,7 @@ void Input(){ //Prepare all stuff for the simulation
     cout << "Prepare random velocities with center of mass velocity equal to zero " << endl << endl;
     double sumv[3] = {0.0, 0.0, 0.0};
     for (int i=0; i<npart; ++i){
-      vx[i] = rnd.Rannyu() - 0.5; //using boltzmann distribution MaxBoltz(0.5, 1., temp)
+      vx[i] = rnd.Rannyu() - 0.5; 
       vy[i] = rnd.Rannyu() - 0.5;
       vz[i] = rnd.Rannyu() - 0.5;
 
@@ -174,7 +176,6 @@ void Input(){ //Prepare all stuff for the simulation
   rnd.SaveSeed();
   return;
 }
-
 
 void Move(void){ //Move particles with Verlet algorithm
   double xnew, ynew, znew, fx[m_part], fy[m_part], fz[m_part];
@@ -262,25 +263,90 @@ void Measure(){ //Properties measurement
 
 //Kinetic energy
   for (int i=0; i<npart; ++i) t += 0.5 * (vx[i]*vx[i] + vy[i]*vy[i] + vz[i]*vz[i]); //kin en. total
-   
-    stima_pot = v/(double)npart; //Potential energy per particle
-    stima_kin = t/(double)npart; //Kinetic energy per particle
-    stima_temp = (2.0 / 3.0) * t/(double)npart; //Temperature
-    stima_etot = (t+v)/(double)npart; //Total energy per particle
+  
+  stima_pot = v/(double)npart; //Potential energy per particle
+  stima_kin = t/(double)npart; //Kinetic energy per particle
+  stima_temp = (2.0 / 3.0) * t/(double)npart; //Temperature
+  stima_etot = (t+v)/(double)npart; //Total energy per particle
 
-    Epot << stima_pot  << endl;
-    Ekin << stima_kin  << endl;
-    Temp << stima_temp << endl;
-    Etot << stima_etot << endl;
+  Epot << stima_pot  << endl;
+  Ekin << stima_kin  << endl;
+  Temp << stima_temp << endl;
+  Etot << stima_etot << endl;
+
+  Epot.close();
+  Ekin.close();
+  Temp.close();
+  Etot.close();
+  
+  return;
+}
+
+void Blocking (){
+  const double kB = 1.38e-23; //j K^-1
+  double epsilon = 1, TSI = 1;
+
+  cout << "Do you want to switch to SI units for the ave_output?" << endl;
+  cout << "Type 1 to confirm, 0 to decline" << endl;
+  int opt;
+  cin >> opt;
+
+  if(opt == 1){
+    epsilon = 120*kB;
+    TSI = 120; 
+  }
+
+  int L = 10;
+  double val = 0;
+  ofstream ave_epot, ave_ekin, ave_etot, ave_temp;
+  ave_epot.open ("ave_epot.out");
+  ave_ekin.open ("ave_ekin.out");
+  ave_etot.open ("ave_etot.out");
+  ave_temp.open ("ave_temp.out");
+
+  for (int i = 1; i < nstep/10./L; i++){ 
+    ifstream Epot, Ekin, Etot, Temp;
+    Epot.open("output_epot.dat");
+    Ekin.open("output_ekin.dat");
+    Temp.open("output_temp.dat");
+    Etot.open("output_etot.dat");
+    
+    int throws = (i+1)*L; //number of throws at this step
+    int Nblocks  = i+1; //number of blocks at this step
+    double  ETOT [Nblocks] = {}, EKIN [Nblocks] = {},EPOT [Nblocks] = {}, TEMP [Nblocks] = {};
+    for (int j = 0; j < Nblocks ; j++){
+      for (int k = 0; k < L; k++){
+        Epot >> val;
+        EPOT [j] += val;
+        Ekin >> val;
+        EKIN [j] += val; 
+        Etot >> val;
+        ETOT [j] += val;
+        Temp >> val;
+        TEMP [j] += val;       
+      }
+      ETOT[j] /= L/epsilon;
+      EKIN[j] /= L/epsilon;
+      EPOT[j] /= L/epsilon;
+      TEMP[j] /= L/TSI;
+    }
+    ave_epot << Nblocks << "," << mean(Nblocks, EPOT) << "," << variance_blocks (Nblocks, ETOT) << endl;
+    ave_ekin << Nblocks << "," << mean(Nblocks, EKIN) << "," << variance_blocks (Nblocks, EKIN) << endl;
+    ave_etot << Nblocks << "," << mean(Nblocks, ETOT) << "," << variance_blocks (Nblocks, EPOT) << endl;
+    ave_temp << Nblocks << "," << mean(Nblocks, TEMP) << "," << variance_blocks (Nblocks, TEMP) << endl;
 
     Epot.close();
     Ekin.close();
-    Temp.close();
     Etot.close();
-
-    return;
+    Temp.close();
+  }
+  
+  ave_epot.close();
+  ave_ekin.close();
+  ave_etot.close();
+  ave_temp.close();
+  return;
 }
-
 
 void ConfFinal(std::string filename){ //Write final configuration
   ofstream WriteConf;

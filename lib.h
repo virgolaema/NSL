@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include "random.h"
 
 //factorial function
 double factorial (double);
@@ -57,3 +58,37 @@ double* generarandgauss(double, double, int );
 
 //ordina il vettore in modo decrescente
 void ordinadecr (double[], int );
+
+//CLASSES 
+
+//position
+
+#ifndef __POSITION_H__
+#define __POSITION_H__
+
+class Position{
+	public:
+	Position();
+	Position(double x, double y, double z);
+	Position (Position&); //copy constructor
+	//~Position();
+	
+	void copyPos (Position&);
+    void setX(double x) {m_x = x;};
+	void setY(double y) {m_y = y;};	
+	void setZ(double z) {m_z = z;};
+	double R() const;
+	double Phi() const;
+	double Theta() const;
+	double Rho() const;
+	double Distance(const Position&) const;
+	double getX () const {return m_x;}
+	double getY () const {return m_y;}
+	double getZ () const {return m_z;}
+
+	protected:
+		double m_x,m_y,m_z;
+};
+
+#endif
+

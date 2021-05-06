@@ -34,16 +34,12 @@ double chisquared (int N, double * nu, double * values, double * variances){
 
 //computing the variance in a MC method, using blocks
 double variance_blocks (int N_blocks, double * A){
-    double * A2 = new double [N_blocks];
-    for (int i=0; i<N_blocks; i++){
-        A2[i] = pow(A[i],2);
-    }
-    double A2_mean = mean (N_blocks, A2);
+    double A2_mean = 0;
+    for (int i=0; i<N_blocks; i++)  A2_mean += pow(A[i],2);
+    A2_mean /= N_blocks;
     double A_mean = mean (N_blocks, A);
-    delete []A2;
     return 1./(N_blocks-1)*(A2_mean-A_mean*A_mean);
 }
-
 
 //ditance between 2 points in 2d space
 double distance (double x1, double x2, double y1, double y2){
@@ -139,7 +135,6 @@ void merge_sort(int a[],int low,int high){
     }
 }
 
-
 //resize a vector
 void resize (double **v, int oldDim, int newDim){
 	double*pappo;
@@ -227,7 +222,6 @@ void boxmuller (double mean, double stdDev, double* v1){
     v1[0] = n1;
 }
 
-
 //generate numbers from gaussian RIVEDERE
 double* generarandgauss(double mean, double stdDev, int n){
     
@@ -260,3 +254,38 @@ void ordinadecr (double vett[], int dim){
     }
     
 }
+
+//CLASSES
+
+//Position
+
+Position::Position(){
+    m_x=0;
+    m_y=0;
+    m_z=0;
+}
+
+Position::Position(double x, double y, double z){
+    m_x=x;
+    m_y=y;
+    m_z=z;
+}
+
+Position::Position (Position &p){
+    m_x = p.getX();
+    m_y = p.getY();
+    m_z = p.getZ();
+}    
+
+void Position::copyPos (Position &p){
+    m_x = p.getX();
+    m_y = p.getY();
+    m_z = p.getZ();
+}
+
+double Position::Distance (const Position &p) const{return sqrt(pow(m_x-p.getX(),2) + pow(m_y-p.getY(),2) + pow(m_z-p.getZ(),2));}
+double Position::R() const {return sqrt(m_x*m_x+m_y*m_y+m_z*m_z);}
+double Position::Phi () const {	return atan2(m_y,m_x);}
+double Position::Theta () const {return acos(m_z/R());}
+double Position::Rho () const {return sqrt(m_x*m_x+m_y*m_y);}
+

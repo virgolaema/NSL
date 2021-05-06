@@ -35,6 +35,7 @@ void Move(void);
 void ConfFinal(std::string);
 void ConfXYZ(int);
 void Measure(void);
+void Blocking (void);
 double Force(int, int);
 double Pbc(double);
 /****************************************************************

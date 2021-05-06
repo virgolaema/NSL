@@ -1,0 +1,15 @@
+0.1
+0.1
+0.1
+210
+3
+0
+U2
+
+    in >> x;
+    in >> y;
+    in >> z;
+    in >> qns;
+    in >> delta;
+    in >> T; (0 for uniform, 1 for gaussian)
+    in >> filename; (for output)
