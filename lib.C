@@ -212,26 +212,14 @@ double findMax (double vett[], int dim) {
     return max;
 }
 
-//boxmuller RIVEDERE
-void boxmuller (double mean, double stdDev, double* v1){
-    double appo1, appo2;
-    double n1;
-    appo1 =  (double) rand()/RAND_MAX;
-    appo2 =  (double) rand()/RAND_MAX;
-    n1 =  stdDev*(sqrt(-2*log(appo1))*sin(2*(3.14)*appo2))+mean;
-    v1[0] = n1;
-}
-
-//generate numbers from gaussian RIVEDERE
-double* generarandgauss(double mean, double stdDev, int n){
-    
-    double*vett;
-    vett =  new double[n];
-    for (int i = 0; i<n; i++){
-        boxmuller(mean, stdDev, &vett[i]);
-    }
-    
-    return vett;
+//boxmuller 
+double boxmuller (double mean, double stdDev){
+    Random rnd;
+    rnd.Initialize(rnd);
+    double appo1 =  rnd.Rannyu();
+    double appo2 =  rnd.Rannyu();
+    rnd.SaveSeed();
+    return  stdDev*(sqrt(-2*log(appo1))*sin(2*(3.14)*appo2))+mean;
 }
 
 //ordina il vettore in ordine decrescente
@@ -277,10 +265,18 @@ Position::Position (Position &p){
     m_z = p.getZ();
 }    
 
+Position::~Position(){}
+
 void Position::copyPos (Position &p){
     m_x = p.getX();
     m_y = p.getY();
     m_z = p.getZ();
+}
+
+void Position :: setCoor (double x, double y, double z){
+    m_x = x;
+    m_z = z;
+    m_y = y;
 }
 
 double Position::Distance (const Position &p) const{return sqrt(pow(m_x-p.getX(),2) + pow(m_y-p.getY(),2) + pow(m_z-p.getZ(),2));}

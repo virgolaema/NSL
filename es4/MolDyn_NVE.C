@@ -19,7 +19,7 @@ using namespace std;
 
 int main(){ 
 
-  Input();             //Inizialization, set 1 to pass  the step t-dt
+  Input();             //Inizialization
   int nconf = 1;
   for(int istep=1; istep <= nstep; ++istep){
      Move();           //Move particles with Verlet algorithm
@@ -312,7 +312,7 @@ void Blocking (){
     Etot.open("output_etot.dat");
     
     int throws = (i+1)*L; //number of throws at this step
-    int Nblocks  = i+1; //number of blocks at this step
+    int Nblocks  = i+1;   //number of blocks at this step
     double  ETOT [Nblocks] = {}, EKIN [Nblocks] = {},EPOT [Nblocks] = {}, TEMP [Nblocks] = {};
     for (int j = 0; j < Nblocks ; j++){
       for (int k = 0; k < L; k++){
@@ -330,9 +330,9 @@ void Blocking (){
       EPOT[j] /= L/epsilon;
       TEMP[j] /= L/TSI;
     }
-    ave_epot << Nblocks << "," << mean(Nblocks, EPOT) << "," << variance_blocks (Nblocks, ETOT) << endl;
+    ave_epot << Nblocks << "," << mean(Nblocks, EPOT) << "," << variance_blocks (Nblocks, EPOT) << endl;
     ave_ekin << Nblocks << "," << mean(Nblocks, EKIN) << "," << variance_blocks (Nblocks, EKIN) << endl;
-    ave_etot << Nblocks << "," << mean(Nblocks, ETOT) << "," << variance_blocks (Nblocks, EPOT) << endl;
+    ave_etot << Nblocks << "," << mean(Nblocks, ETOT) << "," << variance_blocks (Nblocks, ETOT) << endl;
     ave_temp << Nblocks << "," << mean(Nblocks, TEMP) << "," << variance_blocks (Nblocks, TEMP) << endl;
 
     Epot.close();

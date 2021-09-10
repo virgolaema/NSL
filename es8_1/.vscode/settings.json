@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "main.C": "cpp",
+        "lib.C": "cpp",
+        "cmath": "cpp",
+        "iosfwd": "cpp"
+    }
+}

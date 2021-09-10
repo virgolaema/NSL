@@ -1,10 +1,14 @@
 #include <iostream>
 #include <fstream>
+#include <ostream>
 #include <iomanip>
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
 #include <string>
+#include <vector>
+#include <algorithm>
+#include <chrono>
 #include "random.h"
 
 //factorial function
@@ -50,11 +54,8 @@ double randUnif (double, double);
 //maxa value in a vector
 double findMax (double[], int );
 
-//boxmuller RIVEDERE
-void boxMuller (double, double, double*);
-
-//generate numbers from gaussian RIVEDERE
-double* generarandgauss(double, double, int );
+//boxmuller 
+double boxMuller (double, double);
 
 //ordina il vettore in modo decrescente
 void ordinadecr (double[], int );
@@ -71,9 +72,10 @@ class Position{
 	Position();
 	Position(double x, double y, double z);
 	Position (Position&); //copy constructor
-	//~Position();
+	~Position();
 	
 	void copyPos (Position&);
+	void setCoor (double, double, double);
     void setX(double x) {m_x = x;};
 	void setY(double y) {m_y = y;};	
 	void setZ(double z) {m_z = z;};

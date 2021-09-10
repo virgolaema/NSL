@@ -1,0 +1,9 @@
+0.1
+0.1
+0
+name
+
+    in >> x;
+    in >> delta;
+    in >> T; (0 for uniform, 1 for gaussian)
+    in >> filename; (for output)

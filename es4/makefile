@@ -30,3 +30,12 @@ solid: input.solid
 
 fcc: config.fcc
 	cp config.fcc config.dat
+
+1:
+	cp input.1 input.dat
+
+2:
+	cp input.2 input.dat
+
+3:
+	cp input.3 input.dat

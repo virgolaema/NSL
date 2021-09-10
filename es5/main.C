@@ -51,7 +51,7 @@ int main(){
 
     double accepted = 0;
     int MRTsteps = 100; //check if it's okay
-    int M = 100000; //number of gen values
+    int M = 1000000; //number of gen values
     int N = 100; //values per block
     int L = (int) M/N;
     int start = 2; //start from the block "start"

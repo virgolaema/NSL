@@ -17,15 +17,12 @@ _/    _/  _/_/_/  _/_/_/_/ email: Davide.Galli@unimi.it
 
 using namespace std;
 
-int main()
-{ 
+int main(){ 
   Input(); //Inizialization
   int nconf = 1;
-  for(int iblk=1; iblk <= nblk; ++iblk) //Simulation
-  {
+  for(int iblk=1; iblk <= nblk; ++iblk){
     Reset(iblk);   //Reset block averages
-    for(int istep=1; istep <= nstep; ++istep)
-    {
+    for(int istep=1; istep <= nstep; ++istep)    {
       Move();
       Measure();
       Accumulate(); //Update block averages
@@ -41,9 +38,7 @@ int main()
   return 0;
 }
 
-
-void Input(void)
-{
+void Input(void){
   ifstream ReadInput,ReadConf;
 
   cout << "Classic Lennard-Jones fluid        " << endl;
@@ -84,8 +79,8 @@ void Input(void)
   cout << "Cutoff of the interatomic potential = " << rcut << endl << endl;
     
   //Tail corrections for potential energy and pressure
-  vtail = (8.0*pi*rho)/(9.0*pow(rcut,9)) - (8.0*pi*rho)/(3.0*pow(rcut,3));
-  ptail = (32.0*pi*rho)/(9.0*pow(rcut,9)) - (16.0*pi*rho)/(3.0*pow(rcut,3));
+  vtail = (8.0*M_PI*rho)/(9.0*pow(rcut,9)) - (8.0*M_PI*rho)/(3.0*pow(rcut,3));
+  ptail = (32.0*M_PI*rho)/(9.0*pow(rcut,9)) - (16.0*M_PI*rho)/(3.0*pow(rcut,3));
   cout << "Tail correction for the potential energy = " << vtail << endl;
   cout << "Tail correction for the virial           = " << ptail << endl; 
 
@@ -319,19 +314,12 @@ void Averages(int iblk) //Print results for current block
     Gofr.close();
 }
 
-
-void ConfFinal(void)
-{
+void ConfFinal(void){
   ofstream WriteConf;
-
   cout << "Print final configuration to file config.final " << endl << endl;
   WriteConf.open("config.final");
-  for (int i=0; i<npart; ++i)
-  {
-    WriteConf << x[i]/box << "   " <<  y[i]/box << "   " << z[i]/box << endl;
-  }
+  for (int i=0; i<npart; ++i)  WriteConf << x[i]/box << "   " <<  y[i]/box << "   " << z[i]/box << endl;
   WriteConf.close();
-
   rnd.SaveSeed();
 }
 
@@ -347,13 +335,9 @@ void ConfXYZ(int nconf){ //Write configuration in .xyz format
   WriteXYZ.close();
 }
 
-double Pbc(double r)  //Algorithm for periodic boundary conditions with side L=box
-{
-    return r - box * rint(r/box);
-}
+double Pbc(double r){return r - box * rint(r/box);}
 
-double Error(double sum, double sum2, int iblk)
-{
+double Error(double sum, double sum2, int iblk){
     if( iblk == 1 ) return 0.0;
     else return sqrt((sum2/(double)iblk - pow(sum/(double)iblk,2))/(double)(iblk-1));
 }

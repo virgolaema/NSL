@@ -39,9 +39,6 @@ double beta,temp,vol,rho,box,rcut;
 int nstep, nblk;
 double delta;
 
-//pigreco
-const double pi=3.1415927;
-
 //functions
 void Input(void);
 void Reset(int);

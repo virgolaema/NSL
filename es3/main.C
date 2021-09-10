@@ -12,7 +12,7 @@ class black_scholes{
         double r = 0.1;
         double sigma = 0.25;
         double step = 0.01; //step in continuous case
-        double mu = r; //drift, correct?
+        double mu = r; 
 
         void Initialize();
         double d1 (double, double);
@@ -22,18 +22,8 @@ class black_scholes{
         double N (double);
         double Pt (double, double);
         double Ct (double, double);
-
-    private:
 };
 
-void black_scholes :: Initialize (){rnd.Initialize(rnd);}
-double black_scholes :: d1 (double S_t, double t){return 1./(sigma * sqrt(T-t)) * (log(S_t / K) + (r + pow(sigma,2)/2.) * (T-t));}
-double black_scholes :: d2 (double S_t, double t){return d1(S_t,t) - sigma * sqrt(T-t);}
-double black_scholes :: St (double t){return S0 * exp ((mu - pow(sigma,2)/2.)*t + sigma * rnd.Gauss(0,t));}
-double black_scholes :: St (double t, double prec){return prec * exp (((mu - pow(sigma,2)/2.)*step + sigma * rnd.Gauss(0,1))* sqrt(step));}
-double black_scholes :: N (double x){return 0.5 * (1 + erf( x/sqrt(2)));}
-double black_scholes :: Ct (double S_t, double t){return S_t * N(d1(S_t,t)) - K * exp(-r*(T-t)) * N(d2(S_t,t));}
-double black_scholes :: Pt (double S_t, double t){return S_t * (N(d1(S_t,t)) - 1) - K *exp(-r*(T-t)) * (N(d2(S_t,t)) - 1);}
 
 int main(){
 
@@ -41,45 +31,47 @@ int main(){
     black_scholes bs;
     bs.Initialize();
 
-    int M = 100000; //number of gen values
-    int N = 100; //values per block
-    int L = (int) M/N;
-    int start = 1; //start from the block "start"
+    int M = 100000;     //number of gen values
+    int N = 100;        //number of blocks
+    int L = (int) M/N;  //values per block
     double tfin = bs.T;
-//N=3;
-    for (int i = start; i < N; i++){ 
-        int Nblocks  = i+1; //number of blocks at this step
-        double Ctd [Nblocks] = {}, Ptd [Nblocks]= {}, Ctc [Nblocks]= {}, Ptc [Nblocks]= {};
-        for (int j = 0; j < Nblocks ; j++){
-            for (int k = 0; k < L; k++){
-                //discrete
-                Ctd [j] += bs.Ct(bs.St(tfin), tfin);
-                Ptd [j] += bs.Pt(bs.St(tfin), tfin);
-                //cout << "S finale discreto " << bs.St(tfin) << endl;
-                //continuous
-                double t = 0.;
-                double Sprec = bs.S0;
-                for (int h = 0; h < 100; h++){
-                    Sprec = bs.St(t, Sprec);
-                    t += tfin/100.;
-                    //cout << "Tempo " << t << endl;
-                }
-                //cout << "S finale continuo " << Sprec << endl;
-                
-                Ctc [j] += bs.Ct(bs.St(tfin,Sprec), tfin);
-                Ptc [j] += bs.Pt(bs.St(tfin,Sprec), tfin);
-            }
-            Ctd [j] /= L;
-            Ptd [j] /= L;
-            Ctc [j] /= L;
-            Ptc [j] /= L;
-        }
-        out1 << Nblocks << "," << mean (Nblocks, Ctd) << "," << sqrt(variance_blocks(Nblocks, Ctd)) << endl;
-        out2 << Nblocks << "," << mean (Nblocks, Ptd) << "," << sqrt(variance_blocks(Nblocks, Ptd)) << endl;
-        out3 << Nblocks << "," << mean (Nblocks, Ctc) << "," << sqrt(variance_blocks(Nblocks, Ctc)) << endl;
-        out4 << Nblocks << "," << mean (Nblocks, Ptc) << "," << sqrt(variance_blocks(Nblocks, Ptc)) << endl;
-        cout << "step " << i << endl;
+    double Ctd [N] = {}, Ptd [N]= {}, Ctc [N]= {}, Ptc [N]= {};
 
+    for (int i = 0; i < N; i++){ 
+        int Nblocks  = i+1; //number of blocks at this step
+        cout << "Blocks: " << Nblocks << endl;
+        double var_Ctd = 0, var_Ptd = 0, var_Ctc = 0, var_Ptc = 0;
+        for (int k = 0; k < L; k++){
+            //discrete
+            Ctd[i] += bs.Ct(bs.St(tfin), tfin);
+            Ptd[i] += bs.Pt(bs.St(tfin), tfin);
+            
+            //continuous
+            double t = 0.;
+            double Sprec = bs.S0;
+            for (int h = 0; h < 100; h++){
+                Sprec = bs.St(t, Sprec);
+                t += tfin/100.;
+            }
+            
+            Ctc[i] += bs.Ct(bs.St(tfin,Sprec), tfin);
+            Ptc[i] += bs.Pt(bs.St(tfin,Sprec), tfin);
+        }
+        Ctd [i] /= (double) L;
+        Ptd [i] /= (double) L;
+        Ctc [i] /= (double) L;
+        Ptc [i] /= (double) L;
+        
+        if (Nblocks != 1){ //else, var remains 0
+            var_Ctd = variance_blocks(Nblocks, Ctd);
+            var_Ptd = variance_blocks(Nblocks, Ptd);
+            var_Ctc = variance_blocks(Nblocks, Ctc);
+            var_Ptc = variance_blocks(Nblocks, Ptc);
+        }
+        out1 << Nblocks << "," << mean (Nblocks, Ctd) << "," << var_Ctd << endl;
+        out2 << Nblocks << "," << mean (Nblocks, Ptd) << "," << var_Ptd << endl;
+        out3 << Nblocks << "," << mean (Nblocks, Ctc) << "," << var_Ctc << endl;
+        out4 << Nblocks << "," << mean (Nblocks, Ptc) << "," << var_Ptc << endl;
     }
 
     out1.close();
@@ -88,4 +80,35 @@ int main(){
     out4.close();
     bs.rnd.SaveSeed();
     return 0;
+}
+
+
+void black_scholes :: Initialize (){rnd.Initialize(rnd);}
+
+double black_scholes :: d1 (double S_t, double t){
+    return 1./(sigma * sqrt(T-t)) * (log(S_t / K) + (r + pow(sigma,2)/2.) * (T-t));
+}
+
+double black_scholes :: d2 (double S_t, double t){
+    return d1(S_t,t) - sigma * sqrt(T-t);
+}
+
+double black_scholes :: St (double t){
+    return S0 * exp ((mu - pow(sigma,2)/2.)*t + sigma * rnd.Gauss(0,t));
+}
+
+double black_scholes :: St (double t, double prec){
+    return prec * exp (((mu - pow(sigma,2)/2.)*step + sigma * rnd.Gauss(0,1))* sqrt(step));
+}
+
+double black_scholes :: N (double x){
+    return 0.5 * (1 + erf( x/sqrt(2)));
+}
+
+double black_scholes :: Ct (double S_t, double t){
+    return S_t * N(d1(S_t,t)) - K * exp(-r*(T-t)) * N(d2(S_t,t));
+}
+
+double black_scholes :: Pt (double S_t, double t){
+    return S_t * (N(d1(S_t,t)) - 1) - K *exp(-r*(T-t)) * (N(d2(S_t,t)) - 1);
 }

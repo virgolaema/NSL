@@ -5,92 +5,79 @@ using namespace std;
 
 int main(){
 
-    ofstream out;
-    out.open("es1_1.txt");
+    ofstream out1,out2, out3;
 
-    int M = 100000; //number of gen values
-    int N = 100; //values per block
-    int L = (int) M/N;
-    double * unc = new double [N];
-    double * r = new double [N];
-    int start = 4; //start from the block "start"
+    //ex 1.2 and 1.2
+    cout << "Exercise 1.1 and 1.2\n";
+    out1.open("es1_1.out");
+    out2.open("es1_2.out");
+
+    int M = 100000;     //number of gen values
+    int N = 100;        // number of blocks
+    int L = (int) M/N;  //values per block
+
+    // variables "1" are for the estimation of r, "2" for <(r-0.5)^2>
+    double mean1 [N] = {}, mean2 [N] = {};
+    double var1 = 0, var2 = 0;
+    double sum_var1 = 0., sum_var2 = 0; //progressive sums
 
     Random rnd;
     rnd.Initialize(rnd);
 
-    for (int i = start; i < N; i++){ 
-                
-        int throws = (i+1)*L; //number of throws at this step
-        int Nblocks  = i+1; //number of blocks at this step
-        cout << "Ho " << Nblocks  << " blocchi, ovvero " << throws  << " valori"<<endl;
-        double * A = new double [Nblocks];
-        double * varA = new double [Nblocks];
+    for (int i = 0; i < N; i++){ 
+        int Nblocks  = i+1;     //number of blocks at this step
+        int throws = Nblocks*L; //number of throws at this step
+        cout << "Block number " << Nblocks <<endl;
 
-        for (int j = 0; j < Nblocks ; j++){
-            double * appo_A = new double [L];
-            double * appo_varA = new double [L];
-
-            //cout << "creato vettore ausiliario di " << L << " elementi "<<endl;
-            for (int k = 0; k < L; k++){
-                appo_A[k] = rnd.Rannyu();
-                appo_varA[k] = pow(appo_A[k] - 0.5,2);  
-            }
-            A[j] = mean (L, appo_A); 
-            varA[j] = mean (L, appo_varA); 
-
-            delete []appo_A,appo_varA;
+        for (int k = 0; k < L; k++){
+            double r = rnd.Rannyu(); 
+            mean1[i] += r;
+            mean2[i] += pow(r-0.5,2);
         }
-        
-        unc [i] = variance_blocks(Nblocks , A); 
 
-        //"Nblocks,throws,mean_r,var_r,stdev_r,mean_var,stdev_var"
-        out << Nblocks  << "," << throws << "," << mean (Nblocks,A) << "," << unc[i] << "," << pow(unc[i],0.5) 
-            << "," << mean(Nblocks,varA) << "," << pow(variance_blocks(Nblocks ,varA),0.5) << endl; //save all in csv file 
-        
-        delete []A,varA;
-        //in.close();
+        mean1[i] /= (double)L;
+        mean2[i] /= (double)L;
+        if (Nblocks != 1) { //when N=1, leaves var=0 to avoid -nan 
+            var1 = variance_blocks(Nblocks,mean1);
+            var2 = variance_blocks(Nblocks,mean2);
+        }
+        out1 << Nblocks  << "," << mean(Nblocks, mean1) << "," << var1 << endl;
+        out2 << Nblocks  << "," << mean(Nblocks, mean2) << "," << var2 << endl;
     }
 
-    delete []r,unc;
-    out.close();
+    out1.close();
+    out2.close();
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////7
+/////////////////////////////////////////////////////////////////////////////////////
     //ex1.1.3
+    out3.open("es1_3.out");
+    cout << "\n Exercise 1.3\n";
 
-    M = 100; //number of sub-intervals in 0,1
-    int n = 10000;
-    int reps = 100;
+    M = 100;        //number of sub-intervals in 0,1
+    int n = 10000;  //gen values in each exp
+    int reps = 100; //number of experiments
 
     double nu = (double) n/M; //expected value per bin
-    double * chisq = new double [M];
-    double * nui = new double [M]; //values expected in every bin (and also variance), need this for chisquared function
-    for (int i = 0; i < M; i++){nui[i] = nu;}
-
-    out.open("es1_3.txt");
+    double chisq [M] = {};
+    double nui [M] = {}; //expectation for each bin 
+    for (int i = 0; i < M; i++) nui[i] = nu;
     
     for (int k = 0; k < reps; k++){
-        cout << "Calcolo il " << k+1 << " chi-quadro " << endl;
-        double * ni = new double [M];
-        for (int i = 0; i < M; i++){ni[i] = 0;} //initialize to 0 all the elements
-
-        double appo = 0;
+        cout << "Computing the " << k+1 << " chi-squared\n";
+        double ni [M] = {}; //actual values in each bin, initialized to 0
         for (int i = 0; i < n; i++){ //filling the vector ni, repr. the bins
-            appo = rnd.Rannyu();
-            for (int j = 0; j < M; j++){
-                if (appo >= j*(1./M) and appo < (j+1)*1./M) {
+            double r = rnd.Rannyu();
+            for (int j = 0; j < M; j++){ 
+                if (r >= j*(1./M) and r < (j+1)*1./M) {
                     ni[j]++;
                     j = M; //end cicle, got the correct bin
                 }
             }
         }
- 
-        cout << "Chi quadro vale " << chisquared(M,nui,ni,nui) << endl;
-        out << chisquared(M,nui,ni,nui) << endl;
-        delete []ni;
+        out3 << chisquared(M,nui,ni,nui) << endl; //variance is nui, same as exp value
     }
 
-    delete []chisq;
-    out.close();
+    out3.close();
     rnd.SaveSeed();
     return 0;
 }

@@ -2,6 +2,11 @@
     "files.associations": {
         "main.C": "cpp",
         "lib.C": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "iosfwd": "cpp",
+        "fstream": "cpp",
+        "new": "cpp",
+        "iostream": "cpp",
+        "main_.C": "cpp"
     }
 }
