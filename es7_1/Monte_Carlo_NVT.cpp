@@ -240,7 +240,7 @@ void Measure(){
   ofstream p ("output.istP", ios::app);
 
   u << walker[iv] / npart + vtail << endl;
-  p << rho * temp + (walker[iw]+ npart*ptail) << endl;
+  p << rho * temp + (walker[iw]+ npart*ptail) /vol << endl;
 
   u.close();
   p.close();

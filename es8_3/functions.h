@@ -38,7 +38,9 @@ the laplacian operator !
 void translation(); // performs a rigid translation
 void brownianBridge();  // reconstructs a segment of the polymer with a free particle propagation. 
 void brownianMotion(int);  // reconstructs a segment at the extremities of the polymer with a free particle propagation. 
-                                                                                                                 
+
+double phi_minus(double);
+double phi_plus(double);                                                                              
 double variationalWaveFunction(double);  
 /*variationalWaveFunction is the variational wave function that is
 projected in a PIGS simulation.

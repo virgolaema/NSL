@@ -17,3 +17,9 @@ esegui: main
 
 clean: 
 	rm *.o main
+
+1: 
+	cp input_1.dat input.dat
+
+2: 
+	cp input_2.dat input.dat

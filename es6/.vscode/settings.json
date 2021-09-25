@@ -7,6 +7,7 @@
         "fstream": "cpp",
         "new": "cpp",
         "iostream": "cpp",
-        "main_.C": "cpp"
+        "main_.C": "cpp",
+        "MolDyn_NVE.C": "cpp"
     }
 }

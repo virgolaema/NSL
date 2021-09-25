@@ -22,16 +22,18 @@ int main(){
   Input();             //Inizialization, set 1 to pass  the step t-dt
   int nconf = 1;
   for(int istep=1; istep <= nstep; ++istep){
-     Move();           //Move particles with Verlet algorithm
+     Move(istep);           //Move particles with Verlet algorithm
      if(istep%iprint == 0) cout << "Number of time-steps: " << istep << endl;
      if(istep%10 == 0){
         Measure();     //Properties measurement
-        ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
+        //ConfXYZ(nconf);//Write actual configuration in XYZ format //Commented to avoid "filesystem full"! 
         nconf += 1;
-     }
-   
+     } 
+     cout << "cicle\n";
      if (istep == nstep-1) ConfFinal("config.00"); //Write config at step t-dt
   }
+  Averages(nstep); //Print results for current block
+
   ConfFinal("config.final");         //Write final configuration to restart
   Blocking ();
 
@@ -82,6 +84,9 @@ void Input(){ //Prepare all stuff for the simulation
   it = 3; //Temperature
   n_props = 4; //Number of observables
 
+//measurement of g(r) ADDED FOR 7.3
+  bin_size = (box/2.0)/(double)nbins;
+  
 //Read initial configuration
   cout << "Read initial configuration from file config.0 " << endl << endl;
   ReadConf0.open("config.0");
@@ -112,6 +117,8 @@ void Input(){ //Prepare all stuff for the simulation
       sumv[1] += vy[i];
       sumv[2] += vz[i];
     }
+
+    cout << "Velocities prepared, now normalize them\n";
     
     for (int idim = 0; idim < 3; ++idim) sumv [idim] /= (double) npart; //sum of velocities in every direction, per part
     
@@ -173,11 +180,12 @@ void Input(){ //Prepare all stuff for the simulation
 
     }
   }
+  cout << "Input operations ended\n";
   rnd.SaveSeed();
   return;
 }
 
-void Move(void){ //Move particles with Verlet algorithm
+void Move(int istep){ //Move particles with Verlet algorithm
   double xnew, ynew, znew, fx[m_part], fy[m_part], fz[m_part];
 
   for(int i=0; i<npart; ++i){ //Force acting on particle i
@@ -203,6 +211,7 @@ void Move(void){ //Move particles with Verlet algorithm
     y[i] = ynew;
     z[i] = znew;
   }
+  cout << "Move " << istep << " performed succesfully\n";
   return;
 }
 
@@ -228,9 +237,14 @@ double Force(int ip, int idir){ //Compute forces as -Grad_ip V(r)
 }
 
 void Measure(){ //Properties measurement
+  cout << "Measure in execution\n";
   int bin;
   double v, t, vij;
   double dx, dy, dz, dr;
+
+  //reset the hystogram of g(r)
+  for (int k=0; k<nbins; ++k) walker[k]=0.0;
+
   ofstream Epot, Ekin, Etot, Temp;
 
   Epot.open("output_epot.dat",ios::app);
@@ -248,9 +262,15 @@ void Measure(){ //Properties measurement
      dx = Pbc( xold[i] - xold[j] ); // here I use old configurations [old = r(t)]
      dy = Pbc( yold[i] - yold[j] ); // to be compatible with EKin which uses v(t)
      dz = Pbc( zold[i] - zold[j] ); // => EPot should be computed with r(t)
-
      dr = dx*dx + dy*dy + dz*dz;
      dr = sqrt(dr);
+     cout << dr;
+//update of the histogram of g(r)
+      bin = dr/bin_size;      // find the correct bin
+      cout << "bin is " << bin << endl;
+      walker[bin] += 2; // +2 in the histo bin, since there are 2 particles
+cout << "prova\n";
+
 
      if(dr < rcut){
        vij = 4.0/pow(dr,12) - 4.0/pow(dr,6);
@@ -278,7 +298,7 @@ void Measure(){ //Properties measurement
   Ekin.close();
   Temp.close();
   Etot.close();
-  
+  cout << "Measure completed\n";
   return;
 }
 
@@ -348,6 +368,46 @@ void Blocking (){
   return;
 }
 
+void Averages(int istep) { //Print results for current block
+  
+   double r, gdir, stima_gofr, DV;
+   double blk_av[nbins], glob_av[nbins],glob_av2[nbins], err_gofr[nbins];
+   ofstream Gofr, Gave;
+   const int wd=12;
+    
+
+    Gofr.open("output.gofr.0",ios::app);
+    Gave.open("output.gave.0");
+
+    blk_norm = nstep;
+
+    Gofr << nstep << ",";
+    for(int i = 0 ; i < nbins; i++){
+      r = (i)*bin_size; //this is in the correct units now
+      DV = (4./3.)*M_PI*(pow(r+bin_size,3)-pow(r,3)); //dr = bin_size
+      stima_gofr = blk_av[i]/blk_norm/(rho*DV*(double)npart);
+      
+      glob_av[i] += stima_gofr;
+      glob_av2[i] += stima_gofr*stima_gofr;
+      
+      err_gofr[i]=Error(glob_av[i],glob_av2[i],istep);
+      
+      Gofr << glob_av[i]/(double)(nstep/10.) << ","; 
+    }
+    Gofr << endl; 
+
+//g(r) per blocco finale per ogni bin
+    for(int i = 0; i < nbins; i++){
+      r = i*bin_size;
+      Gave << setw(wd) << i+1 << setw(wd) << r+bin_size*0.5 << setw(wd)  << glob_av[i]/(double)(nstep/10.) << setw(wd) << err_gofr[i] << endl;
+    }
+    
+    cout << "----------------------------" << endl << endl;
+
+    Gofr.close();
+    Gave.close();
+}
+
 void ConfFinal(std::string filename){ //Write final configuration
   ofstream WriteConf;
   WriteConf.open(filename);
@@ -375,6 +435,12 @@ void ConfXYZ(int nconf){ //Write configuration in .xyz format
 double Pbc(double r){  //Algorithm for periodic boundary conditions with side L=box
     return r - box * rint(r/box);
 }
+
+double Error(double sum, double sum2, int istep){
+    if( istep == 1 ) return 0.0;
+    else return sqrt((sum2/(double)istep - pow(sum/(double)istep,2))/(double)(istep-1));
+}
+
 
 /****************************************************************
 *****************************************************************

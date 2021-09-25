@@ -3,6 +3,11 @@
         "main.C": "cpp",
         "lib.C": "cpp",
         "cmath": "cpp",
-        "iosfwd": "cpp"
-    }
+        "iosfwd": "cpp",
+        "MolDyn_NVE.C": "cpp",
+        "iostream": "cpp",
+        "TSP.C": "cpp",
+        "fstream": "cpp"
+    },
+    "git.ignoreLimitWarning": true
 }

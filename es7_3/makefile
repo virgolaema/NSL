@@ -29,4 +29,4 @@ solid: input.solid
 	cp input.solid input.dat
 
 fcc: config.fcc
-	cp config.fcc config.dat
+	cp config.fcc config.0

@@ -16,28 +16,16 @@ esegui: Monte_Carlo_NVT.exe
 clean :
 	rm *.o Monte_Carlo_NVT.exe
 
-liquid: l_input l_config
-
-l_input:
+liquid:
 	cp input.liquid input.dat
-
-l_config:
 	cp config.liquid config.0
 
-solid: s_input s_config
-
-s_input:
+solid:
 	cp input.solid input.dat
-
-s_config:
 	cp config.solid config.0
 
-gas: g_input g_config
-
-g_input:
+gas: 
 	cp input.gas input.dat
-
-g_config:
 	cp config.gas config.0
 
 fcc: 

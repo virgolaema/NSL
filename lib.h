@@ -7,6 +7,7 @@
 #include <ctime>
 #include <string>
 #include <vector>
+#include <iterator>
 #include <algorithm>
 #include <chrono>
 #include "random.h"

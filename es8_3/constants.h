@@ -32,7 +32,7 @@ small imaginary-times.
 
 double lambda;
 double dtau;
-int PIGS;
+int PIGS, WAVE;
 double alpha;
 /*
 The following declarations are the variables used by QMC1D. Don't worry, they
@@ -44,6 +44,7 @@ int MCSTEPS, equilibration, blocks, histogram_bins;
 int timeslices_averages_start, timeslices_averages_end;
 double temperature, imaginaryTimePropagation, delta_variational, delta_translation;
 double histogram_start, histogram_end;
+double mu,sigma;
 
 int acceptedTranslations, acceptedVariational, acceptedBB, acceptedBM;
 int totalTranslations, totalVariational, totalBB, totalBM;

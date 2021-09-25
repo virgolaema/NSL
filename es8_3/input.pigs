@@ -16,5 +16,10 @@ histogram_start				-5
 histogram_end				5
 timeslices_interval_for_averages	120 180
 
+which_wave      0
+mu              0.79
+sigma           0.61
+
 # Choose histogram_start & histogram_end large enough in order to
 # contain each sampled position
+# for which_wave, 1 is uniform and 0 is the Trial exp
