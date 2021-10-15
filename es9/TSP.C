@@ -2,31 +2,23 @@
 
 using namespace std;
 
-void Individual :: setN (int n){
-    N = n; 
-    //sequence.resize(N);
-    fitness = 0; //just to initialize
-}
 
-//////////////////////////////////////////////////////////////////////
-
-
-Genetic :: Genetic (int N){
+Genetic :: Genetic (int N):cities(N){
     n_elems = N;
     Random appo;
     rnd = appo;
     rnd.Initialize(rnd);
-    cities = new Position [n_elems];
-    //creating the ordered 1-32 vector, used in check()
-    for (int i = 0; i < n_elems; i++)   ordered.push_back(i+1); 
+    //creating the ordered 0-31 vector, used in check()
+    for (int i = 0; i < n_elems; i++)  ordered.push_back(i); 
 }
 
 //simple shuffle, every element gets swapped with another random one
 // note that the first is always 1
 void Genetic:: shuffle(vector<int> &v){
+    int j;
     for (int i = 1; i < v.size(); i++){
-        int j = 0;
-        do{j = (int) rnd.Rannyu(1,n_elems);} while(i == j); //avoid swapping with self
+        j = 0;
+        do{j = rnd.Rannyu(1,n_elems);} while(i == j); //avoid swapping with self
         swap(v[i], v[j]);
     }
 }
@@ -36,29 +28,35 @@ void Genetic :: dispose (int which){
         double angle = 0;
         for (int i = 0; i < n_elems; i++){
             //angle = 2.* (double)M_PI *(double) i / (double) n_cities; //this is to put them uniformly
-            angle = rnd.Rannyu(0.,2*M_PI);
-            cities[i].setCoor(cos(angle), sin (angle),0.);
+            angle = rnd.Rannyu(0.,2*M_PI);  
+            cities[i].setX(cos(angle));
+            cities[i].setY(sin(angle));
         }
+        cout << "Elements disposed on a circumference \n";
+
     }
     else if (which == 1)    { //inside a square
-        for (int i = 0; i < n_elems; i++)
-            cities[i].setCoor(rnd.Rannyu (-1.,1.),rnd.Rannyu (-1.,1.),0.);
+        for (int i = 0; i < n_elems; i++){
+            cities[i].setX(rnd.Rannyu (-1.,1.));
+            cities[i].setY(rnd.Rannyu (-1.,1.));
+        }
+        cout << "Elements disposed in a square \n";
     }
     else cout << "Choose a valid disposition: 0 for circumference, 1 for square" << endl;
 }
 
 //creating a new individual, a simple ordered vector from 1 to n_elems and then shuffle
 void Genetic:: newIndividual(vector<int> &v){
-    for (int i = 0; i < n_elems; i++) v.push_back(i+1); //filled in order, from 1 to 32
+    for (int i = 0; i < n_elems; i++) v.push_back(i); //filled in order, from 1 to 32
     shuffle(v); //then shuffle to randomize it
 }
 
-// Checks if it's all good. 
 // 1: check if the first element is the city #1
 // 2: Puts the vector in order with order, then compare with an ordered one
 void Genetic :: check(vector <int> v){
-    if (v[0] != 1){
+    if (v[0] != 0){
         cout << "\n There's a problem with this element! First element is not first city" << endl;
+        for (int i = 0; i<v.size(); i++) cout << v[i]<<",";
         exit(0);
     }
     sort(v.begin(), v.end());
@@ -85,20 +83,11 @@ void Genetic :: order (vector <Individual> &a){
             if (a[i].fitness > a[j].fitness) swap(a[i],a[j]);
 }
 
-void Genetic :: selection (vector <Individual> old_gen, Individual & new_ind){
-    int new_index = (int) n_elems *(pow(rnd.Rannyu(), p));
-    //cout << "\nIndex selected from previous generation is " << new_index << endl; 
-    new_ind = old_gen[new_index];
-    //cout << "Confronto le fitness: old = " << old_gen[new_index].fitness << " new = " << new_ind.fitness << endl;
-}
-
-void Genetic :: newGen (vector <Individual> previous_gen, vector <Individual> & next_gen){
-    for (int i = 0; i < previous_gen.size(); i++) selection(previous_gen, next_gen[i]); 
-}
+int Genetic :: selection (vector <Individual> old_gen){return (int) n_elems *(pow(rnd.Rannyu(), p));}
 
 void Genetic :: randomSwap (vector <Individual>& v){
     int a,b;
-    for (int i = 1; i < v.size(); i++){ //leave the first element untouched
+    for (int i = 0; i < v.size(); i++){ //leave the first element untouched
         if (rnd.Rannyu() < prob_mut){ 
             a = rnd.Rannyu(1,n_elems);
             do{b = rnd.Rannyu(1,n_elems);} while(a==b);
@@ -111,13 +100,12 @@ void Genetic :: randomSwap (vector <Individual>& v){
 }
 
 void Genetic :: contSwap (vector <Individual>& v){
-    //selecting elems in the middle to avoid going over dimension
-  
-    for (int i = 1; i < v.size(); i++){ //leave the first element untouched
+    for (int i = 0; i < v.size(); i++){ 
         if (rnd.Rannyu() < prob_mut){
             int length = rnd.Rannyu(1,n_elems/2.);
-            int which1 = rnd.Rannyu(1,n_elems- length), which2 = rnd.Rannyu(1,n_elems-length); 
-            for (int k = 0; k < length; k++)  swap (v[i].sequence[which1 +k],v[i].sequence[which2 +k]);
+            int which1 = rnd.Rannyu(1,n_elems);
+            int which2 = Pbc(which1+length); 
+            for (int k = 0; k < length; k++)  swap (v[i].sequence[Pbc(which1 +k)],v[i].sequence[Pbc(which2 +k)]);
             check(v[i].sequence);
             v[i].fitness = loss(v[i].sequence);
         }
@@ -127,8 +115,8 @@ void Genetic :: contSwap (vector <Individual>& v){
 
 //this shifts a random element to the end of the sequence
 void Genetic :: shift (vector <Individual>& v){
-    for (int i = 1; i < v.size(); i++){ 
-        if (rnd.Rannyu() < prob_mut){ //do this with 10% prob
+    for (int i = 0; i < v.size(); i++){ 
+        if (rnd.Rannyu() < prob_mut){ 
             unsigned int which = (int) rnd.Rannyu(1,n_elems);
             v[i].sequence.push_back(v[i].sequence[which]);
             v[i].sequence.erase(v[i].sequence.begin()+which);
@@ -141,17 +129,17 @@ void Genetic :: shift (vector <Individual>& v){
 
 void Genetic:: crossover(vector<Individual> &v){
     int j, start;
-    for (int i = 1; i < v.size(); i++){ 
+    vector <Individual> appo;
+    for (int i = 0; i < v.size()/2; i++){ 
+        int indi = selection(v), indj;
+        do{indj = selection(v);}while(indj == indi);
+        vector <int> seqi = v[indi].sequence;
+        vector <int> seqj = v[indj].sequence;
         if (rnd.Rannyu() < 0.5){
-            do{j = rnd.Rannyu(1,v.size());} while(j==i);
-            vector <int> seqi = v[i].sequence;
-            vector <int> seqj = v[j].sequence;
             vector <int> newi = seqi;
             vector <int> newj = seqj;
-            
             start = int(rnd.Rannyu(1,seqi.size())); //start of cross
-            vector <int > indexi;
-            vector <int > indexj;
+            vector <int > indexi, indexj;
             vector<int>::iterator it;
             for(int k = start; k < seqi.size(); k++){
                 it = find (seqj.begin(), seqj.end(),seqi[k]);
@@ -161,8 +149,6 @@ void Genetic:: crossover(vector<Individual> &v){
             }
             sort(indexi.begin(),indexi.end());
             sort(indexj.begin(),indexj.end());
-            //cout << "\nordered vector\n";
-            //for(int k = 0; k < indexi.size();k++) cout << indexi[k] << ",";
 
             int t = 0;
             for(int k = start; k < seqi.size();k++){
@@ -170,23 +156,30 @@ void Genetic:: crossover(vector<Individual> &v){
                 newj[k] = seqi[indexj[t]];
                 t++;
             }
-            //cout << "\nold sequence is: \n";
-            //for(int k = 0; k < seqi.size();k++) cout << v[i].sequence[k] << ",";
-            v[i].sequence = newi;
-            v[j].sequence = newj;        
-            //cout << "\nnew sequence is: \n";            
-            //for(int k = 0; k < seqi.size(); k++) cout << newi[k] << ",";
-            //cout << endl;
-            check(v[i].sequence);
-            check(v[j].sequence);
-            v[i].fitness = loss(v[i].sequence);
-            v[j].fitness = loss(v[j].sequence);
+            v[indi].sequence = newi;
+            v[indj].sequence = newj;  
+            check(v[indi].sequence);
+            check(v[indj].sequence);
+            v[indi].fitness = loss(v[indi].sequence);
+            v[indj].fitness = loss(v[indj].sequence);
+            appo.push_back(v[indi]);
+            appo.push_back(v[indj]);      
+
+        }
+        else{
+            appo.push_back(v[indi]);
+            appo.push_back(v[indj]);
+
         }
     }
+    v = appo;
     order(v);
 }
 
-void Genetic :: end (){
-    rnd.SaveSeed();
+int Genetic :: Pbc (int a){ 
+    if (a >= n_elems) a = 1 + a - n_elems;
+    return a;
 }
+
+void Genetic :: end (){rnd.SaveSeed();}
 

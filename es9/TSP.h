@@ -8,7 +8,8 @@ class Individual{
     int N;
     vector <int> sequence;
     double fitness;
-    void setN(int); //instead of a initializer
+    void setN(int n){N = n;}; //instead of a initializer
+    private:
 };
 
 class Genetic{
@@ -18,7 +19,7 @@ class Genetic{
     int n_elems;
     int L;
     double p, prob_mut;
-    Position * cities; //array of cities
+    vector <Position> cities; //array of cities
     vector <int> ordered; //needed for check ()
     
     void whichProb (double prob){prob_mut = prob;};
@@ -30,11 +31,11 @@ class Genetic{
     void check(vector<int>);
     double loss (vector <int>); //module
     void order(vector <Individual> &);
-    void selection (vector <Individual>, Individual&);
-    void newGen (vector <Individual>, vector <Individual> &);
+    int selection (vector <Individual>);
     void randomSwap (vector<Individual> &);
     void contSwap (vector<Individual> &);
     void shift (vector<Individual> &);
     void crossover(vector<Individual> &);
+    int Pbc (int);
     void end();
 };
