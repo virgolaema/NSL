@@ -8,7 +8,10 @@
         "iostream": "cpp",
         "TSP.C": "cpp",
         "fstream": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "MakeRootTree.C": "cpp",
+        "DrawTrackOnly.C": "cpp",
+        "SingleBarAna.C": "cpp"
     },
     "git.ignoreLimitWarning": true
 }

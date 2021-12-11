@@ -31,7 +31,7 @@ int main(){
     tsp.newIndividual(old.sequence); //start creating random individuals
     old.fitness = tsp.loss(old.sequence);
 
-    double Tin = 1000., T = Tin, P;
+    double Tin = 1., T = Tin, P;
     double beta = 1./T;
     int count = 0;
     ofstream fit ("fitness.out");
@@ -55,7 +55,7 @@ int main(){
         }
         fit << old.fitness << endl;
         cout << old.fitness << endl;
-        T *= 0.8; //divide by 2 at each step
+        T *= 0.9; //divide by 2 at each step
         beta = 1./T;
 //        if (count < 5) break; //if the element doesn't change anymore, we're at the gs
 cout << "numero scambi " << count << endl;

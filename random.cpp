@@ -37,6 +37,7 @@ void Random :: Initialize(Random &rnd){
          if( property == "RANDOMSEED" ){
             input >> seed[0] >> seed[1] >> seed[2] >> seed[3];
             rnd.SetRandom(seed,p1,p2);
+            //cout << "\n P1 E P2 SONO " << p1 << "," << p2 << endl << endl;
          }
       }
       input.close();

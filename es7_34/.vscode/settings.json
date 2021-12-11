@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "MolDyn_NVE.C": "cpp",
-        "main.C": "cpp",
-        "lib.C": "cpp"
-    }
-}
