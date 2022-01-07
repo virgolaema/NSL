@@ -41,7 +41,7 @@ double variance_blocks (int N_blocks, double * A){
     return 1./(N_blocks-1)*(A2_mean-A_mean*A_mean);
 }
 
-//ditance between 2 points in 2d space
+//distance between 2 points in 2d space
 double distance (double x1, double x2, double y1, double y2){
     double d, xx, yy;
     xx  =  pow(x1-x2,2);

@@ -9,6 +9,7 @@
 #include <vector>
 #include <iterator>
 #include <algorithm>
+#include <random>
 #include <chrono>
 #include "random.h"
 

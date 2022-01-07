@@ -5,9 +5,9 @@ using namespace std;
 
 Genetic :: Genetic (int N):cities(N){
     n_elems = N;
-    //Random appo;
-    //rnd = appo;
-    //rnd.Initialize(rnd);
+    Random appo;
+    rnd = appo;
+    rnd.Initialize(rnd);
     //creating the ordered 0-31 vector, used in check()
     for (int i = 0; i < n_elems; i++)  ordered.push_back(i); 
 }
@@ -18,7 +18,7 @@ void Genetic:: shuffle(vector<int> &v){
     int j;
     for (int i = 1; i < v.size(); i++){
         j = 0;
-        do{j = rnd.Rannyu(1,n_elems);} while(i == j); //avoid swapping with self
+        do{j = rnd.Rannyu(1,v.size());} while(i == j); //avoid swapping with self
         swap(v[i], v[j]);
     }
 }

@@ -3,11 +3,18 @@
 
 using namespace std;
 
+int Pbc (int max, int el){
+    if(el >= max) el -= max;
+    else if(el < 0) el += max;
+    return el;
+}
+
 int main(int argc, char *argv[]){
     int n_cities;  //number of cities
     int n_indiv;  //number of individuals in each gen
     int n_gens;   //number of generations
     int disp, loss, p;
+    double prob;
 
     ifstream in ("input.dat");
     in >> n_cities;
@@ -19,21 +26,22 @@ int main(int argc, char *argv[]){
     in >> loss;
     cout << "Loss function " << loss << endl;
     in >> p;
+    cout << "Exp of selection operator: " << p << endl;
+    in >> prob;
+    cout << "Prob of mutations: " << prob << endl;
     in.close();
 
     //multicore
     int nstep = 2000; 
     int n_migr= 20; //nodes after which exchange is made
-    int size, rank;
-    int exchange, exchange2, exchange3;
+    int size, rank, max_rank = atoi(argv[1]);
+
+    cout << "Cores used: " << max_rank << endl;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Status stat[4];
-    MPI_Request req, req2;
-    int itag=1;
-    cout << "\n RANK E' " << rank << endl << endl;
+    cout << "\n RANK is " << rank << endl << endl;
     Genetic tsp (n_cities);
 
     Random rnd_appo;
@@ -45,7 +53,7 @@ int main(int argc, char *argv[]){
     } else cerr << "PROBLEM: Unable to open Primes" << endl;
     Primes.close();
 
-    cout << "\n generatori P1 E P2 SONO " << p1 << "," << p2 << endl << endl;
+    // cout << "\n generatori P1 E P2 SONO " << p1 << "," << p2 << endl << endl;
 
     ifstream input("../seed.in");
     string property;
@@ -61,16 +69,31 @@ int main(int argc, char *argv[]){
     } else cerr << "PROBLEM: Unable to open seed.in" << endl;
     tsp.rnd = rnd_appo;
 
-    cout << "random: " << tsp.rnd.Rannyu() << endl;
-
-    tsp.dispose(disp);        //dispose the n cities on a circ (0) or a square (1)
+    if (rank == 0) tsp.dispose(disp);        //dispose the n cities on a circ (0) or a square (1)
     tsp.whichLoss(loss);      //1 for L1, 2 for L2
     tsp.whichP(p);            //exp of selection operator
-    tsp.whichProb(0.1);       //probabilty of mutations
+    tsp.whichProb(prob);      //probabilty of mutations
 
-    ofstream pos ("cities.out");
-    for (int i = 0; i < n_cities; i++) pos << tsp.cities[i].getX() << "," << tsp.cities[i].getY() << endl;
-    pos.close();
+    double cities_x [n_cities] = {};
+    double cities_y [n_cities] = {};
+
+    if (rank == 0){
+        ofstream pos ("cities.out");
+        for (int i = 0; i < n_cities; i++){
+            pos << tsp.cities[i].getX() << "," << tsp.cities[i].getY() << endl;
+            cities_x[i] = tsp.cities[i].getX();
+            cities_y[i] = tsp.cities[i].getY();
+        }
+        pos.close();
+    }
+
+    // Broadcast the disposition of cities to other ranks
+    MPI_Bcast(cities_x,n_cities,MPI_DOUBLE,0, MPI_COMM_WORLD);		
+	MPI_Bcast(cities_y,n_cities,MPI_DOUBLE,0, MPI_COMM_WORLD);
+    for (int i = 0; i < n_cities; i++){
+        tsp.cities[i].setX(cities_x[i]);
+        tsp.cities[i].setY(cities_y[i]);
+    }
 
     //Create first generation
     vector <Individual> generation; 
@@ -83,14 +106,16 @@ int main(int argc, char *argv[]){
     }
     tsp.order(generation);
 
-    int best_ind [32];
+    int best_ind [n_cities] = {};
 
     //Create new generations
-    ofstream fit ("fitness.out");
-    ofstream meanL ("meanL.out");
-
-    for (int i = 1; i <= n_gens; i++){ //should be n_gens
-        if(i%10 == 1) cout << "Creating the " << i << " generation" << endl;
+    ofstream fit, meanL;
+    if (rank == 0){
+        fit.open("fitness.out");
+        meanL.open("meanL.out");
+    }
+     
+    for (int i = 1; i <= n_gens; i++){ 
         //NEW GEN
         tsp.crossover(generation);
         //MUTATIONS. Every mutation also puts element in fitness order
@@ -98,50 +123,58 @@ int main(int argc, char *argv[]){
         tsp.contSwap(generation);
         tsp.shift(generation);
         for (int y = 0; y < n_cities; y++) best_ind[y] = generation[0].sequence[y];
-        if(i%10 ==0) cout << "Loss of best element at this gen: " << generation[0].fitness << endl;
-        fit << generation[0].fitness << endl;
-        /*double mean_L = 0.;
-        for (int h = 0; h < n_indiv/2.; h++)  mean_L += generation[h].fitness;
-        meanL << mean_L/(n_indiv/2.) << endl;
-        */
-        // EXCHANGE best individual
-        if(i%n_migr==0){ 
-            exchange = tsp.rnd.Rannyu(1,4);
-            if(exchange == 1) {exchange2=2; exchange3=3;}
-            else if(exchange == 2) {exchange2=1; exchange3=3;}
-            else {exchange2=1; exchange3=2;}
+        if(i%10 ==0) cout << "RANK " << rank <<  ", Loss of best element at gen " << i << ": " << generation[0].fitness << endl;
+        if (rank == 0) fit << generation[0].fitness << endl;
+        double mean_L = 0.;
+        if (rank == 0){
+            for (int h = 0; h < n_indiv/2.; h++)  mean_L += generation[h].fitness;
+            meanL << mean_L/(n_indiv/2.) << endl;
+        }			
+        //exchange best individuals every n_migr generations
+        if (i % n_migr == 0 and max_rank != 1){
+			MPI_Status stat1, stat2, stat3, stat4;
+			MPI_Request req1,req2;
+			int itag[max_rank];
+            for (int k = 0; k < max_rank; k++) itag[k] = k+1;
+            int exchange [max_rank]; //just because can't use a vector
+            if (rank == 0) {
+			    vector<int> vec_exc;
+                for (int k = 0; k < max_rank; k++) vec_exc.push_back(k);
+                // auto rng = default_random_engine {};
+                // random_shuffle(begin(vec_exc),end(vec_exc), rng);
+                if(max_rank != 2) tsp.shuffle(vec_exc); 
+                for (int k = 0; k < max_rank; k++) {exchange[k] = vec_exc[k]; cout << exchange[k];}
+                cout << endl;
+            }
 
-            if(rank == 0){ //exchange between rank 0 and exchange
-                MPI_Isend(best_ind, 32, MPI_INTEGER, exchange, itag, MPI_COMM_WORLD, &req);
-                MPI_Recv(best_ind, 32, MPI_INTEGER, exchange, itag, MPI_COMM_WORLD, &stat[1]);
+            MPI_Bcast(exchange,max_rank,MPI_INTEGER,0, MPI_COMM_WORLD);
+            
+            //now every continent sends the best_ind to the next, and receives from the precious (in pbc)
+            for (int h = 0; h < max_rank; h++){
+                int this_el = h;
+                int prev_el = Pbc(max_rank, h-1);
+                int next_el = Pbc(max_rank,h+1);
+                cout << "Elems in order: " << prev_el << " " << this_el << " " << next_el << endl;
+                if (rank == exchange[this_el]){		
+                    MPI_Isend(best_ind,n_cities,MPI_INTEGER,exchange[next_el],itag[this_el],MPI_COMM_WORLD,&req1);
+                    MPI_Recv(best_ind,n_cities,MPI_INTEGER,exchange[prev_el],itag[prev_el], MPI_COMM_WORLD,&stat2);
+                }
             }
-            else if(rank == exchange){
-                MPI_Send(best_ind, 32, MPI_INTEGER, 0, itag, MPI_COMM_WORLD);
-                MPI_Recv(best_ind, 32, MPI_INTEGER, 0, itag, MPI_COMM_WORLD, &stat[0]);
-            }
-            else if(rank == exchange2){ //faccio scambio tra rank==exchange2 e rank==exchange3
-                MPI_Isend(best_ind, 32, MPI_INTEGER, exchange3, itag, MPI_COMM_WORLD, &req2);
-                MPI_Recv(best_ind, 32, MPI_INTEGER, exchange3, itag, MPI_COMM_WORLD, &stat[3]);
-            }
-            else if(rank == exchange3){
-                MPI_Send(best_ind, 32, MPI_INTEGER, exchange2, itag, MPI_COMM_WORLD);
-                MPI_Recv(best_ind, 32, MPI_INTEGER, exchange2, itag, MPI_COMM_WORLD, &stat[2]);
-            }
-            for (int y = 0; y < n_cities; y++) generation[0].sequence[y] = best_ind[y];
-            generation[0].fitness = tsp.loss(generation[0].sequence);
-            tsp.order(generation);
         }
     }
-    meanL.close();
-    fit.close();
 
-    ofstream final("final.out");
-    cout << "Printing best configuration...\n"; 
-    for (int h = 0; h < n_cities; h++) final << tsp.cities[generation[0].sequence[h]].getX() << "," << tsp.cities[generation[0].sequence[h]].getY() << endl;
-    final << tsp.cities[generation[0].sequence[0]].getX() << "," << tsp.cities[generation[0].sequence[0]].getY() << endl;
-    final.close();
-    cout << "Done\n";
+    if (rank == 0){
+        meanL.close();
+        fit.close();
+        ofstream final("final.out");
+        cout << "Printing best configuration...\n"; 
+        for (int h = 0; h < n_cities; h++) final << tsp.cities[generation[0].sequence[h]].getX() << "," << tsp.cities[generation[0].sequence[h]].getY() << endl;
+        final << tsp.cities[generation[0].sequence[0]].getX() << "," << tsp.cities[generation[0].sequence[0]].getY() << endl;
+        final.close();
+    }
+
+    cout << "RANK " << rank << " Done\n";
     MPI::Finalize();
-    cout << "finalized\n";
+    cout << "RANK " << rank << "finalized\n";
     return 0;
 }
