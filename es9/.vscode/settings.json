@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "main.C": "cpp",
-        "TSP.C": "cpp",
-        "lib.C": "cpp",
-        "iostream": "cpp",
-        "ostream": "cpp"
-    }
-}
