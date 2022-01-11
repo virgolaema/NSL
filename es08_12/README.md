@@ -1,0 +1,1 @@
+Con lo script _es2.py_ si esegue una grid search per individuare i parametri ottimali per mu e sigma. 

@@ -1,1 +1,1 @@
-Con lo script runall.py vengono eseguite tutte le simulazioni richieste e i risultati vengono spostati nelle cartelle corrispondenti. 
+Con lo script _runall.py_ vengono eseguite tutte le simulazioni richieste e i risultati vengono spostati nelle cartelle corrispondenti. 

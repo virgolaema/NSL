@@ -27,15 +27,15 @@ clean:
 	rm *.o main
 
 sposta: 
-	cp *.out results
+	mv *.out results
 M:
-	cp metropolis.dat input.dat
+	cp inputs/metropolis.dat input.dat
 
 G:
-	cp gibbs.dat input.dat
+	cp configs/gibbs.dat input.dat
 
 M_m:
-	cp metropolis_m.dat input.dat
+	cp configs/metropolis_m.dat input.dat
 
 G_m:
-	cp gibbs_m.dat input.dat
+	cp configs/gibbs_m.dat input.dat

@@ -1,0 +1,13 @@
+32
+100
+500
+0
+2
+5
+
+    n_cities;  //number of cities
+    n_indiv;  //number of individuals in each gen
+    n_gens;   //number of generations
+    disp //0 for circ, 1 for square 
+    loss //1 or 2
+    p //selection operator

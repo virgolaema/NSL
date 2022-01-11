@@ -1,0 +1,1 @@
+Con _runall.py_ vengono eseguite tutte le simulazioni richieste dall'esercizio. In configs e inputs si trovano i file di input utilizzati.

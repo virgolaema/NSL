@@ -17,19 +17,19 @@ clean :
 	rm *.o Monte_Carlo_NVT.exe
 
 liquid:
-	cp input.liquid input.dat
-	cp config.liquid config.0
+	cp inputs/input.liquid input.dat
+	cp configs/config.liquid config.0
 
 solid:
-	cp input.solid input.dat
-	cp config.solid config.0
+	cp inputs/input.solid input.dat
+	cp configs/config.solid config.0
 
 gas: 
-	cp input.gas input.dat
-	cp config.gas config.0
+	cp inputs/input.gas input.dat
+	cp configs/config.gas config.0
 
 fcc: 
-	cp config.fcc config.dat
+	cp configs/config.fcc config.dat
 
 pulisci: 
 	rm output*

@@ -1,0 +1,17 @@
+{
+    "files.associations": {
+        "main.C": "cpp",
+        "lib.C": "cpp",
+        "cmath": "cpp",
+        "iosfwd": "cpp",
+        "MolDyn_NVE.C": "cpp",
+        "iostream": "cpp",
+        "TSP.C": "cpp",
+        "fstream": "cpp",
+        "ostream": "cpp",
+        "MakeRootTree.C": "cpp",
+        "DrawTrackOnly.C": "cpp",
+        "SingleBarAna.C": "cpp"
+    },
+    "git.ignoreLimitWarning": true
+}
