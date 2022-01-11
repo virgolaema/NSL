@@ -1,0 +1,17 @@
+1.2
+108
+0.05
+4
+0.0005
+1000000
+1000
+1000
+
+  ReadInput >> temp;
+  ReadInput >> npart;
+  ReadInput >> rho;
+  ReadInput >> rcut;
+  ReadInput >> delta;
+  ReadInput >> nstep;
+  ReadInput >> iprint;
+  ReadInput >> L, for blocking method;

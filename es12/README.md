@@ -1,0 +1,1 @@
+In questa cartella si trovano solo le immagini da me disegnate con gimp per testare la rete neurale convoluzionale.

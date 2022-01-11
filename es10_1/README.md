@@ -1,0 +1,1 @@
+Con lo script runall.py vengono eseguite le due simulazioni: circonferenza (c) e quadrato (s).

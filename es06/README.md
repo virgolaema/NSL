@@ -1,0 +1,1 @@
+Con lo script runall.py vengono eseguite tutte le simulazioni e i risultati vengono spostati nella cartella results.

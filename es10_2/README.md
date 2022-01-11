@@ -1,0 +1,1 @@
+Con lo script runall.py viene eseguito il programma 4 volte, variando il numero di core da 1 a 4. 
