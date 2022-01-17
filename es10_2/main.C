@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
     }
 
     // Broadcast the disposition of cities to other ranks
-    MPI_Bcast(cities_x,n_cities,MPI_DOUBLE,0, MPI_COMM_WORLD);		
+    MPI_Bcast(cities_x,n_cities,MPI_DOUBLE,0, MPI_COMM_WORLD);
 	MPI_Bcast(cities_y,n_cities,MPI_DOUBLE,0, MPI_COMM_WORLD);
     for (int i = 0; i < n_cities; i++){
         tsp.cities[i].setX(cities_x[i]);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[]){
         }			
         //exchange best individuals every n_migr generations
         if (i % n_migr == 0 and max_rank != 1){
-			MPI_Status stat1, stat2, stat3, stat4;
+			MPI_Status stat1, stat2;
 			MPI_Request req1,req2;
 			int itag[max_rank];
             for (int k = 0; k < max_rank; k++) itag[k] = k+1;
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]){
                 for (int k = 0; k < max_rank; k++) vec_exc.push_back(k);
                 // auto rng = default_random_engine {};
                 // random_shuffle(begin(vec_exc),end(vec_exc), rng);
-                if(max_rank != 2) tsp.shuffle(vec_exc); 
+                if(max_rank != 2) tsp.shuffle(vec_exc);
                 for (int k = 0; k < max_rank; k++) {exchange[k] = vec_exc[k]; cout << exchange[k];}
                 cout << endl;
             }
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]){
                 int prev_el = Pbc(max_rank, h-1);
                 int next_el = Pbc(max_rank,h+1);
                 cout << "Elems in order: " << prev_el << " " << this_el << " " << next_el << endl;
-                if (rank == exchange[this_el]){		
+                if (rank == exchange[this_el]){	
                     MPI_Isend(best_ind,n_cities,MPI_INTEGER,exchange[next_el],itag[this_el],MPI_COMM_WORLD,&req1);
                     MPI_Recv(best_ind,n_cities,MPI_INTEGER,exchange[prev_el],itag[prev_el], MPI_COMM_WORLD,&stat2);
                 }

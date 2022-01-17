@@ -11,14 +11,14 @@ class black_scholes{
         double K = 100.;
         double r = 0.1;
         double sigma = 0.25;
-        double step = 0.01; //step in continuous case
-        double mu = r; 
+        double step = 0.01; //step in discrete case
+        double mu = 0.1; 
 
         void Initialize();
         double d1 (double, double);
         double d2 (double, double);
-        double St (double); //discrete case
-        double St (double, double); //continuous case
+        double St (double); //direct case
+        double St (double, double); //discrete case
         double N (double);
         double Pt (double, double);
         double Ct (double, double);
@@ -28,13 +28,14 @@ class black_scholes{
 int main(){
 
     ofstream out1("Cd.out"), out2("Pd.out"), out3("Cc.out"), out4("Pc.out");
-    black_scholes bs;
-    bs.Initialize();
+    black_scholes bs_d,bs_c;
+    bs_d.Initialize();
+    bs_c.Initialize();
 
     int M = 100000;     //number of gen values
     int N = 100;        //number of blocks
     int L = (int) M/N;  //values per block
-    double tfin = bs.T;
+    double tfin = bs_d.T;
     double Ctd [N] = {}, Ptd [N]= {}, Ctc [N]= {}, Ptc [N]= {};
 
     for (int i = 0; i < N; i++){ 
@@ -42,20 +43,19 @@ int main(){
         cout << "Blocks: " << Nblocks << endl;
         double var_Ctd = 0, var_Ptd = 0, var_Ctc = 0, var_Ptc = 0;
         for (int k = 0; k < L; k++){
-            //discrete
-            Ctd[i] += bs.Ct(bs.St(tfin), tfin);
-            Ptd[i] += bs.Pt(bs.St(tfin), tfin);
+            //direct
+            Ctd[i] += bs_d.Ct(bs_d.St(tfin), tfin);
+            Ptd[i] += bs_d.Pt(bs_d.St(tfin), tfin);
             
-            //continuous
+            //discretized
             double t = 0.;
-            double Sprec = bs.S0;
+            double Sprec = bs_c.S0, mean_S = 0.;
             for (int h = 0; h < 100; h++){
-                Sprec = bs.St(t, Sprec);
-                t += tfin/100.;
+                Sprec = bs_c.St(t, Sprec);
+                t += tfin/100.; //useless
             }
-            
-            Ctc[i] += bs.Ct(bs.St(tfin,Sprec), tfin);
-            Ptc[i] += bs.Pt(bs.St(tfin,Sprec), tfin);
+            Ctc[i] += bs_c.Ct(Sprec, tfin);
+            Ptc[i] += bs_c.Pt(Sprec, tfin);
         }
         Ctd [i] /= (double) L;
         Ptd [i] /= (double) L;
@@ -78,7 +78,8 @@ int main(){
     out2.close();
     out3.close();
     out4.close();
-    bs.rnd.SaveSeed();
+    bs_d.rnd.SaveSeed();
+    bs_c.rnd.SaveSeed();
     return 0;
 }
 
@@ -86,7 +87,7 @@ int main(){
 void black_scholes :: Initialize (){rnd.Initialize(rnd);}
 
 double black_scholes :: d1 (double S_t, double t){
-    return 1./(sigma * sqrt(T-t)) * (log(S_t / K) + (r + pow(sigma,2)/2.) * (T-t));
+    return 1./(sigma * sqrt(T-t)) * (log(S_t / K) + r + pow(sigma,2)/2. * (T-t));
 }
 
 double black_scholes :: d2 (double S_t, double t){
@@ -94,21 +95,21 @@ double black_scholes :: d2 (double S_t, double t){
 }
 
 double black_scholes :: St (double t){
-    return S0 * exp ((mu - pow(sigma,2)/2.)*t + sigma * rnd.Gauss(0,t));
+    return S0 * exp ((mu - pow(sigma,2)*0.5)*t + sigma * rnd.Gauss(0,t));
 }
 
 double black_scholes :: St (double t, double prec){
-    return prec * exp (((mu - pow(sigma,2)/2.)*step + sigma * rnd.Gauss(0,1))* sqrt(step));
+    return prec * exp ((mu - pow(sigma,2)*0.5)*step + sigma * rnd.Gauss(0,1)* sqrt(step));
 }
 
 double black_scholes :: N (double x){
-    return 0.5 * (1 + erf( x/sqrt(2)));
+    return 0.5 * (1 + erf( x/sqrt(2.)));
 }
 
-double black_scholes :: Ct (double S_t, double t){
-    return S_t * N(d1(S_t,t)) - K * exp(-r*(T-t)) * N(d2(S_t,t));
+double black_scholes ::  Ct(double S_t, double t){
+      return exp(-r*T)*max(0.,S_t-K);
 }
 
-double black_scholes :: Pt (double S_t, double t){
-    return S_t * (N(d1(S_t,t)) - 1) - K *exp(-r*(T-t)) * (N(d2(S_t,t)) - 1);
-}
+double black_scholes :: Pt(double S_t, double t){
+      return exp(-r*T)*max(0.,K-S_t);
+   }
